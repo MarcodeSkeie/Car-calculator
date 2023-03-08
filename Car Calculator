@@ -63,22 +63,17 @@ class MarginCalculator(tk.Frame):
         self.our_offer_label = tk.Label(self.master, text="")
         self.our_offer_label.grid(row=len(EXPENSE_COSTS)+6, column=1, sticky="W")
 
-    def toggle_expenses(self):
-        if self.expenses_frame is None:
-            self.show_expenses()
-            self.expense_button.config(text="Hide expenses")
-        else:
-            self.hide_expenses()
-            self.expense_button.config(text="Show expenses")
+    def show_expenses(self):
+        self.show_button.config(state=tk.DISABLED)
+        self.hide_button.config(state=tk.NORMAL)
+        for expense, var in self.expense_vars.items():
+            var.set(True)
 
-    def toggle_expenses(self):
-        # show or hide expenses based on current state
-        if self.expenses_frame.winfo_ismapped():
-            self.expenses_frame.grid_forget()
-            self.expenses_button.config(text="Show expenses")
-        else:
-            self.expenses_frame.grid(row=2, column=1, sticky="W")
-            self.expenses_button.config(text="Hide expenses")
+    def hide_expenses(self):
+        self.show_button.config(state=tk.NORMAL)
+        self.hide_button.config(state=tk.DISABLED)
+        for expense, var in self.expense_vars.items():
+            var.set(False)
 
     def calculate_margin(self):
         # get selling price from entry
