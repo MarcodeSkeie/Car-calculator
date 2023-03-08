@@ -1,0 +1,109 @@
+import tkinter as tk
+from tkinter import messagebox
+
+# define base margins for different selling price ranges
+BASE_MARGINS = {
+    100000: 27500,
+    200000: 32500,
+    300000: 35000
+}
+
+# define costs for different expenses
+EXPENSE_COSTS = {
+    '1 panel lack': 2000,
+    '2 paneler lack': 4000,
+    '3 paneler lack': 6000,
+    '4 paneler lack': 8000,
+    'Saknar nyckel': 3000,
+    'liten service': 4000,
+    'stor service': 10000
+}
+
+class MarginCalculator(tk.Frame):
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.master = master
+        self.master.title("Margin calculator")
+        self.create_widgets()
+        self.master.deiconify()
+
+    def create_widgets(self):
+        # create widgets for selling price
+        tk.Label(self.master, text="Selling price:").grid(row=0, column=0, sticky="W")
+        self.selling_price_entry = tk.Entry(self.master)
+        self.selling_price_entry.grid(row=0, column=1)
+
+        # create widgets for expense options
+        tk.Label(self.master, text="Expenses:").grid(row=1, column=0, sticky="W")
+        self.expense_vars = {}
+        for i, expense in enumerate(EXPENSE_COSTS):
+            var = tk.BooleanVar()
+            self.expense_vars[expense] = var
+            tk.Checkbutton(self.master, text=expense, variable=var).grid(row=i+2, column=0, sticky="W")
+
+        # create buttons for showing/hiding expense options and calculating margin
+        self.show_button = tk.Button(self.master, text="Show expenses", command=self.show_expenses)
+        self.show_button.grid(row=len(EXPENSE_COSTS)+2, column=0, sticky="W", padx=5, pady=5)
+        self.hide_button = tk.Button(self.master, text="Hide expenses", command=self.hide_expenses, state=tk.DISABLED)
+        self.hide_button.grid(row=len(EXPENSE_COSTS)+2, column=1, sticky="W", padx=5, pady=5)
+        self.calculate_button = tk.Button(self.master, text="Calculate", command=self.calculate_margin)
+        self.calculate_button.grid(row=len(EXPENSE_COSTS)+2, column=2, sticky="W", padx=5, pady=5)
+
+        # create labels for displaying margin results
+        tk.Label(self.master, text="Base margin:").grid(row=len(EXPENSE_COSTS)+3, column=0, sticky="W")
+        self.base_margin_label = tk.Label(self.master, text="")
+        self.base_margin_label.grid(row=len(EXPENSE_COSTS)+3, column=1, sticky="W")
+        tk.Label(self.master, text="Expenses:").grid(row=len(EXPENSE_COSTS)+4, column=0, sticky="W")
+        self.expenses_label = tk.Label(self.master, text="")
+        self.expenses_label.grid(row=len(EXPENSE_COSTS)+4, column=1, sticky="W")
+        tk.Label(self.master, text="Margin needed:").grid(row=len(EXPENSE_COSTS)+5, column=0, sticky="W")
+        self.margin_needed_label = tk.Label(self.master, text="")
+        self.margin_needed_label.grid(row=len(EXPENSE_COSTS)+5, column=1, sticky="W")
+        tk.Label(self.master, text="Our offer:").grid(row=len(EXPENSE_COSTS)+6, column=0, sticky="W")
+        self.our_offer_label = tk.Label(self.master, text="")
+        self.our_offer_label.grid(row=len(EXPENSE_COSTS)+6, column=1, sticky="W")
+
+    def show_expenses(self):
+        self.show_button.config(state=tk.DISABLED)
+        self.hide_button.config(state=tk.NORMAL)
+        for expense, var in self.expense_vars.items():
+            var.set(True)
+
+    def hide_expenses(self):
+        self.show_button.config(state=tk.NORMAL)
+        self.hide_button.config(state=tk.DISABLED)
+        for expense, var in self.expense_vars.items():
+            var.set(False)
+
+    def calculate_margin(self):
+        # get selling price from entry
+        try:
+            selling_price = int(self.selling_price_entry.get())
+        except ValueError:
+            messagebox.showerror("Error", "Selling price must be a whole number")
+            return
+
+        # get expenses from checkboxes
+        expenses = sum(EXPENSE_COSTS[expense] for expense, var in self.expense_vars.items() if var.get())
+
+        # calculate base margin based on selling price
+        base_margin = 0
+        for price, margin in BASE_MARGINS.items():
+            if selling_price <= price:
+                base_margin = margin
+                break
+
+        # calculate margin needed and our offer
+        margin_needed = selling_price - base_margin
+        our_offer = selling_price - base_margin - expenses
+
+        # update labels with results
+        self.base_margin_label.config(text=f"{base_margin} SEK")
+        self.expenses_label.config(text=f"{expenses} SEK")
+        self.margin_needed_label.config(text=f"{margin_needed} SEK")
+        self.our_offer_label.config(text=f"{our_offer} SEK")
+
+    root = tk.Tk()
+    app = MarginCalculator(root)
+    app.grid()
+    root.mainloop()
